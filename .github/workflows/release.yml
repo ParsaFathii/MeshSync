@@ -1,0 +1,269 @@
+# MeshSync — release pipeline.
+#
+# Triggered by pushing a version tag (v*). A release NEVER happens without
+# validation:
+#
+#   validate → build (matrix) → release
+#
+#   * validate — the full test suite (Go vet+test, native make test, web
+#     lint + production build, flutter analyze + test). Guarded legs (native,
+#     flutter) skip with a ::notice:: only while those components are still
+#     landing; everything present must pass.
+#   * build   — cross-compiles the Go agent per target and builds the native
+#     C++ hashing worker where a real toolchain exists (linux/amd64 with g++,
+#     darwin with clang++). Honest limitations:
+#       - linux/arm64: agent-only archive (no cross g++ toolchain is wired
+#         up; the agent transparently falls back to pure-Go hashing).
+#       - windows/amd64: agent-only archive (the g++ Makefile engine is not
+#         validated on Windows runners — MSYS2 leg is future work).
+#   * release — aggregates artifacts, generates SHA256SUMS and a CycloneDX
+#     SBOM (Anchore sbom-action / syft), and publishes the GitHub release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate full test suite
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./db/custom.db
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go (version from agent/go.mod)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: agent/go.mod
+          cache: true
+          cache-dependency-path: agent/go.sum
+
+      - name: Go vet + test (agent/)
+        working-directory: agent
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Native engine tests
+        run: |
+          set -eu
+          if [ -f native/cpp/Makefile ]; then
+            make -C native/cpp test
+          else
+            echo "::notice title=native-engine::native/cpp/Makefile not present yet — native tests skipped (engine still landing)."
+          fi
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Web console lint + production build
+        run: |
+          bun install --frozen-lockfile
+          bun run db:generate
+          bun run lint
+          bun run build
+
+      - name: Check for the Flutter client
+        id: flutter
+        run: |
+          set -eu
+          if [ -d flutter ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=flutter::flutter/ directory not present yet — flutter checks skipped (client still landing)."
+          fi
+
+      - name: Set up Flutter (stable)
+        if: steps.flutter.outputs.present == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter analyze + test
+        if: steps.flutter.outputs.present == 'true'
+        working-directory: flutter
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+  build:
+    name: Build — ${{ matrix.name }}
+    needs: validate
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux_amd64
+            os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            exe: ""
+            native: true
+          - name: linux_arm64
+            # Agent-only archive: cross g++ toolchain not wired; pure-Go
+            # fallback hashing covers the agent at runtime.
+            os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            exe: ""
+            native: false
+          - name: windows_amd64
+            # Agent-only archive: g++/Makefile native engine is not built on
+            # Windows runners (documented limitation).
+            os: windows-latest
+            goos: windows
+            goarch: amd64
+            exe: ".exe"
+            native: false
+          - name: darwin_universal
+            # Universal binary (amd64 + arm64 via lipo). The native worker is
+            # built for the runner architecture (arm64).
+            os: macos-latest
+            goos: darwin
+            goarch: universal
+            exe: ""
+            native: true
+    env:
+      CGO_ENABLED: "0" # pure-Go SQLite — static, portable binaries
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go (version from agent/go.mod)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: agent/go.mod
+          cache: true
+          cache-dependency-path: agent/go.sum
+
+      - name: Build meshsync-agent
+        working-directory: agent
+        run: |
+          set -euo pipefail
+          mkdir -p ../staging
+          if [ "${{ matrix.goarch }}" = "universal" ]; then
+            GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o ../staging/meshsync-agent-amd64 ./cmd/meshsync-agent
+            GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="-s -w" -o ../staging/meshsync-agent-arm64 ./cmd/meshsync-agent
+            lipo -create -output ../staging/meshsync-agent ../staging/meshsync-agent-amd64 ../staging/meshsync-agent-arm64
+            rm ../staging/meshsync-agent-amd64 ../staging/meshsync-agent-arm64
+          else
+            GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+              go build -trimpath -ldflags="-s -w" -o "../staging/meshsync-agent${{ matrix.exe }}" ./cmd/meshsync-agent
+          fi
+
+      - name: Build native hashing worker (C++)
+        if: matrix.native
+        run: |
+          set -euo pipefail
+          if [ -f native/cpp/Makefile ]; then
+            make -C native/cpp all
+            if [ -f native/cpp/bin/meshsync-native ]; then
+              cp native/cpp/bin/meshsync-native "staging/meshsync-native${{ matrix.exe }}"
+            elif [ -f native/cpp/meshsync-native ]; then
+              cp native/cpp/meshsync-native "staging/meshsync-native${{ matrix.exe }}"
+            else
+              echo "::error title=native-worker::make succeeded but meshsync-native binary not found"
+              exit 1
+            fi
+          else
+            echo "::notice title=native-worker::native/cpp/Makefile not present yet — shipping agent-only archive (pure-Go fallback hashing)."
+          fi
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            # bsdtar (tar.exe on Windows runners) picks the zip format from
+            # the extension with -a.
+            tar -a -cf "dist/meshsync-agent_${{ matrix.name }}.zip" -C staging .
+          else
+            tar -czf "dist/meshsync-agent_${{ matrix.name }}.tar.gz" -C staging .
+          fi
+          ls -la dist
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meshsync-agent_${{ matrix.name }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release and upload assets
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: dist/meshsync-sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate and verify SHA256SUMS
+        run: |
+          set -euo pipefail
+          cd dist
+          # All release assets (everything except the checksum file itself).
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z \
+            | xargs -0 ../scripts/gen-checksums.sh > SHA256SUMS
+          sha256sum -c SHA256SUMS
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"   # e.g. v0.4.0
+          ver="${tag#v}"             # 0.4.0
+          if [ -f CHANGELOG.md ]; then
+            # Matches all heading styles seen in the wild for this project:
+            #   "## v0.4.0 — ..."   "## 0.4.0 — ..."   "## [0.4.0] — ..."
+            awk -v ver="$ver" '
+              /^## / {
+                keep = ($0 ~ ("^##[[:space:]]*\\[?v?" ver "\\]?([[:space:]]|$)")) ? 1 : 0
+                next
+              }
+              keep { print }
+            ' CHANGELOG.md | sed -e '/./,$!d' > release_body.md
+          fi
+          if [ ! -s release_body.md ]; then
+            printf 'MeshSync %s.\n\nSee [CHANGELOG.md](https://github.com/ParsaFathii/MeshSync/blob/main/CHANGELOG.md) for the full history.\n' "$tag" > release_body.md
+          fi
+          cat release_body.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/SHA256SUMS
+            dist/meshsync-sbom.cdx.json
+          body_path: release_body.md
+          generate_release_notes: true
+          fail_on_unmatched_files: true

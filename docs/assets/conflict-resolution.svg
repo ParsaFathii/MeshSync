@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MeshSync original diagram — conflict detection and resolution paths (EN labels). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 700" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1180" height="700" fill="#ffffff"/>
+  <text x="30" y="38" font-size="18" font-weight="700" fill="#0f172a">MeshSync — conflict detection and resolution</text>
+  <text x="30" y="58" font-size="12" fill="#64748b">A conflict means both devices changed the same path since the last common version. Nothing is overwritten silently.</text>
+
+  <!-- detection -->
+  <rect x="30" y="85" width="340" height="255" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <text x="45" y="108" font-size="12" font-weight="700" fill="#78350f" letter-spacing="1">DETECTION (planner)</text>
+
+  <rect x="55" y="122" width="290" height="58" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="200" y="145" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">both modified</text>
+  <text x="200" y="163" font-size="11" fill="#92400e" text-anchor="middle">local ≠ lastSyncedHash ≠ remote</text>
+
+  <rect x="55" y="192" width="290" height="58" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="200" y="215" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">delete vs. diverged content</text>
+  <text x="200" y="233" font-size="11" fill="#92400e" text-anchor="middle">one side deleted, the other changed it</text>
+
+  <rect x="55" y="262" width="290" height="58" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="200" y="285" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">result</text>
+  <text x="200" y="303" font-size="11" fill="#92400e" text-anchor="middle">plan state CONFLICT · no data moves</text>
+
+  <!-- open conflict -->
+  <rect x="410" y="110" width="330" height="200" rx="10" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="425" y="133" font-size="12" font-weight="700" fill="#475569" letter-spacing="1">OPEN CONFLICT RECORD</text>
+  <text x="425" y="157" font-size="11" fill="#334155">GET /api/v1/conflicts → status OPEN</text>
+  <text x="425" y="175" font-size="11" fill="#334155">local + remote hash, size, mtime, peer</text>
+  <text x="425" y="193" font-size="11" fill="#334155">CONFLICT_DETECTED event, mirrored</text>
+  <text x="425" y="211" font-size="11" fill="#334155">to the other device via CONFLICT_NOTIFY</text>
+  <text x="425" y="233" font-size="11" fill="#334155">Conflicting paths are skipped by sync runs</text>
+  <text x="425" y="251" font-size="11" fill="#334155">until resolved — data safety first.</text>
+  <text x="425" y="273" font-size="11" fill="#334155">Resolution runs a mini sync session;</text>
+  <text x="425" y="291" font-size="11" fill="#334155">on PEER_OFFLINE it stays OPEN, nothing is lost.</text>
+
+  <path d="M370,175 L410,175" stroke="#b45309" stroke-width="2" marker-end="url(#arrAmber)"/>
+
+  <!-- resolution paths -->
+  <rect x="790" y="85" width="360" height="560" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="805" y="108" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">POST /conflicts/{id}/resolve</text>
+
+  <rect x="815" y="122" width="310" height="112" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="970" y="145" font-size="13" font-weight="700" fill="#134e4a" text-anchor="middle">KEEP_LOCAL</text>
+  <text x="970" y="167" font-size="11" fill="#0f766e" text-anchor="middle">local version wins</text>
+  <text x="970" y="185" font-size="11" fill="#0f766e" text-anchor="middle">local content is pushed to the peer</text>
+  <text x="970" y="203" font-size="11" fill="#0f766e" text-anchor="middle">the peer's current copy goes to ITS trash</text>
+  <text x="970" y="225" font-size="11" fill="#475569" text-anchor="middle">both sides then agree on this hash</text>
+
+  <rect x="815" y="250" width="310" height="112" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="970" y="273" font-size="13" font-weight="700" fill="#134e4a" text-anchor="middle">KEEP_REMOTE</text>
+  <text x="970" y="295" font-size="11" fill="#0f766e" text-anchor="middle">remote version wins</text>
+  <text x="970" y="313" font-size="11" fill="#0f766e" text-anchor="middle">remote content is pulled over the local copy</text>
+  <text x="970" y="331" font-size="11" fill="#0f766e" text-anchor="middle">the local copy goes to the LOCAL trash</text>
+  <text x="970" y="353" font-size="11" fill="#475569" text-anchor="middle">loser stays recoverable</text>
+
+  <rect x="815" y="378" width="310" height="150" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="970" y="401" font-size="13" font-weight="700" fill="#134e4a" text-anchor="middle">KEEP_BOTH</text>
+  <text x="970" y="423" font-size="11" fill="#0f766e" text-anchor="middle">remote version is pulled and stored next to</text>
+  <text x="970" y="441" font-size="11" fill="#0f766e" text-anchor="middle">the local file, then the local version wins:</text>
+  <rect x="830" y="452" width="280" height="26" rx="6" fill="#ccfbf1" stroke="#0d9488"/>
+  <text x="970" y="469" font-size="10.5" fill="#134e4a" text-anchor="middle" font-family="ui-monospace, monospace">report (conflict from mesh-beta 2026-10-08).pdf</text>
+  <text x="970" y="496" font-size="11" fill="#475569" text-anchor="middle">deterministic name: stem + peer + UTC date</text>
+  <text x="970" y="514" font-size="11" fill="#475569" text-anchor="middle">original path keeps the local content</text>
+
+  <rect x="815" y="544" width="310" height="86" rx="8" fill="#ffffff" stroke="#64748b" stroke-dasharray="6 3"/>
+  <text x="970" y="567" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">LATER</text>
+  <text x="970" y="589" font-size="11" fill="#475569" text-anchor="middle">explicit no-op: conflict stays OPEN</text>
+  <text x="970" y="607" font-size="11" fill="#475569" text-anchor="middle">both versions remain on their devices</text>
+  <text x="970" y="625" font-size="11" fill="#475569" text-anchor="middle">decide when you are ready</text>
+
+  <path d="M740,210 L815,180" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+  <path d="M740,230 L815,300" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+  <path d="M740,250 L815,430" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+  <path d="M740,270 L815,580" stroke="#64748b" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+
+  <!-- resolved -->
+  <rect x="30" y="370" width="340" height="120" rx="10" fill="#ccfbf1" stroke="#0d9488"/>
+  <text x="45" y="394" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">AFTER RESOLUTION</text>
+  <text x="45" y="418" font-size="11" fill="#134e4a">record becomes RESOLVED with the action stored</text>
+  <text x="45" y="436" font-size="11" fill="#134e4a">CONFLICT_RESOLVED event emitted</text>
+  <text x="45" y="454" font-size="11" fill="#134e4a">normal sync resumes for the path</text>
+  <text x="45" y="472" font-size="11" fill="#134e4a">losers remain in trash until cleaned manually</text>
+
+  <path d="M815,470 C620,560 330,540 200,490" fill="none" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+
+  <text x="30" y="680" font-size="11" fill="#94a3b8">MeshSync · docs/assets/conflict-resolution.svg</text>
+</svg>

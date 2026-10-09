@@ -1,0 +1,42 @@
+# MeshSync Dependabot configuration.
+#
+# Only ecosystems with manifests Dependabot actually supports are configured:
+#   * gomod          — agent/go.mod (module github.com/ParsaFathii/MeshSync/agent)
+#   * github-actions — .github/workflows/* (uses: pins)
+#   * docker         — deploy/Dockerfile (base image bumps)
+#
+# The npm ecosystem is intentionally NOT configured: the web console uses bun
+# (bun.lock), which Dependabot does not support (it requires package-lock.json,
+# yarn.lock or pnpm-lock.yaml). Web dependency updates are handled manually or
+# via `bun update` + the CI/CodeQL gates.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /agent
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(agent)"
+    labels:
+      - dependencies
+      - go
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - dependencies
+      - ci
+
+  - package-ecosystem: docker
+    directory: /deploy
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deploy)"
+    labels:
+      - dependencies
+      - docker

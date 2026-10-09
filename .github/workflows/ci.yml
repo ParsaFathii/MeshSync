@@ -1,0 +1,169 @@
+# MeshSync — continuous integration.
+#
+# Runs on every push to main and every PR:
+#   * agent-go   — Go agent build + vet + tests on Linux, Windows, macOS
+#   * native-cpp — C++20 native engine (Makefile, g++/clang++) on Linux + macOS
+#   * web        — web console: bun install (frozen lockfile) + eslint + production build
+#   * flutter    — Flutter client: pub get + analyze + tests
+#
+# The native engine (native/cpp) and the Flutter client (flutter/) land in the
+# tree progressively (parallel development). The native-cpp and flutter jobs
+# detect their directories and skip with a visible ::notice:: until they
+# exist; they never fail on absence.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: CI only needs to read the repository.
+permissions:
+  contents: read
+
+# Supersede older runs for the same PR (and rapid pushes to the same branch).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  agent-go:
+    name: Agent (Go) — ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go (version from agent/go.mod)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: agent/go.mod
+          cache: true
+          cache-dependency-path: agent/go.sum
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+  native-cpp:
+    # Native C++20 hashing engine. Linux uses g++, macOS uses clang++ (the
+    # /usr/bin/g++ shim on macOS runners is clang++). Windows is intentionally
+    # NOT in this matrix: the engine builds through a plain g++ Makefile that
+    # is not validated against MSYS2/mingw toolchains yet. That is an honest,
+    # documented limitation — add an MSYS2 leg (msys2/setup-msys2 + mingw-w64
+    # g++) once the engine team confirms Makefile portability.
+    name: Native engine (C++) — ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check for the native engine
+        id: native
+        run: |
+          set -eu
+          if [ -f native/cpp/Makefile ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=native-engine::native/cpp/Makefile is not present in this commit yet — native build/test skipped (engine still landing)."
+          fi
+
+      - name: Build native engine
+        if: steps.native.outputs.present == 'true'
+        run: make -C native/cpp all
+
+      - name: Test native engine
+        if: steps.native.outputs.present == 'true'
+        run: make -C native/cpp test
+
+  web:
+    # Web console (Next.js 16 + bun). The production build needs a
+    # DATABASE_URL (see .env.example); a throwaway local SQLite path is used —
+    # the build does not touch production data.
+    #
+    # Type-checking note: next.config.ts sets typescript.ignoreBuildErrors and
+    # the tree does not currently pass `tsc --noEmit`; the enforced gates are
+    # eslint and the production build. Add a `tsc --noEmit` step once the type
+    # debt is paid down.
+    name: Web console (Next.js + bun)
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./db/custom.db
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: bun run db:generate
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Production build
+        run: bun run build
+
+  flutter:
+    # Flutter client (built in parallel; job activates once flutter/ lands).
+    name: Flutter client
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check for the Flutter client
+        id: flutter
+        run: |
+          set -eu
+          if [ -d flutter ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=flutter::flutter/ directory is not present in this commit yet — flutter checks skipped (client still landing)."
+          fi
+
+      - name: Set up Flutter (stable)
+        if: steps.flutter.outputs.present == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        if: steps.flutter.outputs.present == 'true'
+        working-directory: flutter
+        run: flutter pub get
+
+      - name: Analyze
+        if: steps.flutter.outputs.present == 'true'
+        working-directory: flutter
+        run: flutter analyze
+
+      - name: Test
+        if: steps.flutter.outputs.present == 'true'
+        working-directory: flutter
+        run: flutter test

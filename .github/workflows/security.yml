@@ -1,0 +1,83 @@
+# MeshSync — security scanning.
+#
+#   * CodeQL code analysis for the Go agent (agent/) and the web console
+#     (src/), with path filters so generated/vendored trees are not analyzed.
+#   * gitleaks secret scanning over the full history.
+#
+# The Go leg uses a manual build step (go build in agent/) between init and
+# analyze because the Go module lives in a subdirectory, not at the repo root.
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly sweep (Mondays 06:00 UTC) catches new queries/vulns on old code.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write # upload CodeQL SARIF results
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  codeql:
+    name: CodeQL — ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [go, javascript]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go (version from agent/go.mod)
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: agent/go.mod
+          cache: true
+          cache-dependency-path: agent/go.sum
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Analyze only real product code: the Go agent and the web console.
+          config: |
+            paths:
+              - agent
+              - agent/**
+              - src
+              - src/**
+
+      - name: Build Go agent (for CodeQL extraction)
+        if: matrix.language == 'go'
+        working-directory: agent
+        run: go build ./...
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  gitleaks:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for leaked secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
