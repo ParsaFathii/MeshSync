@@ -9,7 +9,6 @@ REST + WebSocket روی `127.0.0.1`. کنسول وب و کلاینت Flutter ف�
 
 - مالک: پارسا فتحی · Copyright © 2026 Parsa Fathi
 - مجوز: Apache-2.0
-- مخزن: <https://github.com/ParsaFathii/MeshSync>
 - قرارداد کامل API: [docs/API.md](../API.md)
 - راه‌اندازی سریع ۵ دقیقه‌ای: [QUICKSTART.md](../QUICKSTART.md)
 - نسخهٔ انگلیسی این سند: [README.md](../../README.md)

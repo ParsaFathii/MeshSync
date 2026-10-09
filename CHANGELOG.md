@@ -14,7 +14,7 @@ semantic versioning. Release dates are filled in when each tag is cut.
   fa/RTL, Flutter client) captured into `docs/assets/screens/`.
 - Release artifacts published per tag: cross-compiled `meshsync-agent`
   binaries, the `meshsync-native` worker, `SHA256SUMS`, and an SBOM,
-  attached to the GitHub release.
+  attached to the release.
 - Final bilingual documentation set (English root documents + `docs/fa/`)
   reviewed against the shipped code.
 

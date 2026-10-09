@@ -47,7 +47,7 @@ SQLite (meshsync.db) + پوشه‌های اشتراکی + trash/ + parts/
 | `app` | ریشهٔ ترکیب؛ پیاده‌سازی هندلرهای پروتکل سمت همتا |
 
 سایر کامپوننت‌ها: `native/cpp` (موتور هش C++20)، `src/` (کنسول وب)،
-`flutter/` (کلاینت)، `docs/`، `.github/` (CI)، `deploy/` (Docker)،
+`flutter/` (کلاینت)، `docs/`، `deploy/` (Docker)،
 `scripts/` (ابزار انتشار).
 
 ## اسکیمای دیتابیس (`001_init.sql`)

@@ -13,8 +13,7 @@ document; change the contract first (as a proposal), then the code.
 - **Flutter client:** Flutter SDK 3.x (`flutter/`).
 
 ```sh
-git clone https://github.com/ParsaFathii/MeshSync
-cd MeshSync
+# from the repository root
 
 # agent
 cd agent && go build ./... && go test ./...
@@ -43,7 +42,6 @@ flutter/         Flutter client (Android, Linux)
 src/             web console (Next.js, TS, Tailwind, shadcn/ui)
 docs/            API.md, QUICKSTART.md, assets/ (SVG diagrams), fa/ (Persian)
 prisma/, db/     web console agent-registry storage
-.github/         CI workflows, issue templates
 deploy/          Docker packaging
 scripts/         release / tooling scripts
 ```

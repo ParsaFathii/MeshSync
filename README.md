@@ -9,7 +9,6 @@ that API.
 
 - Owner: Parsa Fathi · Copyright © 2026 Parsa Fathi
 - License: Apache-2.0
-- Repository: <https://github.com/ParsaFathii/MeshSync>
 - Full API contract: [docs/API.md](docs/API.md)
 - 5-minute demo: [docs/QUICKSTART.md](docs/QUICKSTART.md)
 - فارسی: [docs/fa/README_FA.md](docs/fa/README_FA.md)
@@ -449,7 +448,7 @@ MeshSync ships versioned milestones (see [CHANGELOG.md](CHANGELOG.md)):
 `0.1.0` agent core, `0.2.0` web console, `0.3.0` Flutter client, `0.4.0`
 operations (docs/CI/Docker/SBOM), `1.0.0` stable. Each tag goes through the
 pipeline in [release-pipeline.svg](docs/assets/release-pipeline.svg) —
-validate, package, checksum, SBOM, then the GitHub release with binaries and
+validate, package, checksum, SBOM, then the published release with binaries and
 a CycloneDX SBOM. The Docker image (`deploy/Dockerfile`, multi-arch
 linux/amd64 + arm64) contains the pure-Go agent only — the C++ worker is
 optional and not bundled; the agent falls back to Go hashing inside the

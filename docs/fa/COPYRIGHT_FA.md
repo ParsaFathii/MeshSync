@@ -8,8 +8,6 @@ MeshSync پروژه‌ای از **پارسا فتحی (Parsa Fathi)** است.
 Copyright © 2026 Parsa Fathi
 ```
 
-مخزن رسمی: <https://github.com/ParsaFathii/MeshSync>
-
 ## مجوز
 
 این نرم‌افزار تحت **مجوز آپاچی، نسخهٔ ۲٫۰** (Apache License 2.0) منتشر

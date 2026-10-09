@@ -47,7 +47,7 @@ Overview diagram: [docs/assets/architecture.svg](docs/assets/architecture.svg).
 | `app` | composition root; implements the peer-side protocol handlers |
 
 Other components: `native/cpp` (C++20 hashing worker), `src/` (web console),
-`flutter/` (Flutter client), `docs/` (this documentation), `.github/` (CI),
+`flutter/` (Flutter client), `docs/` (this documentation),
 `deploy/` (Docker packaging), `scripts/` (release tooling).
 
 ## Schema (SQLite, migration `001_init.sql`)

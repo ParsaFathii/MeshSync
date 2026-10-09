@@ -43,7 +43,6 @@ flutter/         کلاینت Flutter (اندروید و لینوکس)
 src/             کنسول وب (Next.js، TypeScript، Tailwind، shadcn/ui)
 docs/            API.md، QUICKSTART.md، assets/ (نمودارهای SVG)، fa/ (فارسی)
 prisma/, db/     ذخیره‌سازی رجیستری endpointها برای کنسول وب
-.github/         workflowهای CI و قالب issue
 deploy/          بسته‌بندی Docker
 scripts/         اسکریپت‌های انتشار و ابزارها
 ```
