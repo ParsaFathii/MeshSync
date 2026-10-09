@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MeshSync original diagram — synchronization planning and execution flow (EN labels). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 860" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1180" height="860" fill="#ffffff"/>
+  <text x="30" y="38" font-size="18" font-weight="700" fill="#0f172a">MeshSync — sync flow: plan first, then execute</text>
+  <text x="30" y="58" font-size="12" fill="#64748b">Every path is classified by SHA-256 content hashes before a single byte is moved; the plan is inspectable via GET /sync/plan.</text>
+
+  <!-- ===== Phase 1: plan ===== -->
+  <rect x="30" y="80" width="540" height="330" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="45" y="104" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">PHASE 1 — PLAN (no file is touched)</text>
+
+  <rect x="60" y="118" width="480" height="56" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="300" y="141" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">rescan local folder → fresh index (size + mtime shortcuts, hash on change)</text>
+  <text x="300" y="159" font-size="11" fill="#0f766e" text-anchor="middle">connect to peer (TLS 1.3, pinned key) · session id s-…</text>
+
+  <rect x="60" y="188" width="230" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="175" y="210" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">send local manifest</text>
+  <text x="175" y="228" font-size="11" fill="#0f766e" text-anchor="middle">INDEX frame (path, size, hash)</text>
+
+  <rect x="310" y="188" width="230" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="425" y="210" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">receive remote manifest</text>
+  <text x="425" y="228" font-size="11" fill="#0f766e" text-anchor="middle">INDEX_REQUEST → INDEX</text>
+
+  <line x1="300" y1="174" x2="215" y2="188" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="300" y1="174" x2="410" y2="188" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- classifier table -->
+  <rect x="60" y="258" width="480" height="132" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="300" y="280" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">classify every path in the union of both indexes</text>
+  <text x="80" y="302" font-size="11" fill="#475569">● UNCHANGED — hashes equal, nothing to do</text>
+  <text x="80" y="320" font-size="11" fill="#475569">● LOCAL_ONLY / REMOTE_ONLY — one side never saw it → PUSH / PULL</text>
+  <text x="80" y="338" font-size="11" fill="#475569">● LOCAL_MODIFIED / REMOTE_MODIFIED — one side matches last synced hash → PUSH / PULL</text>
+  <text x="80" y="356" font-size="11" fill="#92400e">● CONFLICT — both sides changed since lastSyncedHash (or delete vs. modified)</text>
+  <text x="80" y="374" font-size="11" fill="#475569">● DELETE_LOCAL / DELETE_REMOTE — one side deleted what still matches the synced hash</text>
+
+  <rect x="60" y="258" width="480" height="0" fill="none"/>
+
+  <!-- ===== Phase 2: inspect ===== -->
+  <rect x="60" y="415" width="480" height="70" rx="8" fill="#fffbeb" stroke="#b45309"/>
+  <text x="300" y="440" font-size="12" font-weight="700" fill="#78350f" text-anchor="middle">plan is returned to the caller (summary + per-path actions)</text>
+  <text x="300" y="458" font-size="11" fill="#92400e" text-anchor="middle">GET /sync/plan?peer=…&amp;folder=… — dry run; POST /sync/run executes it</text>
+  <text x="300" y="474" font-size="11" fill="#92400e" text-anchor="middle">open conflicts are skipped during execution — resolve them first</text>
+
+  <path d="M300,410 L300,415" stroke="#0d9488" stroke-width="2"/>
+
+  <!-- ===== Phase 3: execute ===== -->
+  <rect x="610" y="80" width="540" height="415" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+  <text x="625" y="104" font-size="12" font-weight="700" fill="#475569" letter-spacing="1">PHASE 2 — EXECUTE (POST /sync/run)</text>
+
+  <rect x="640" y="118" width="480" height="64" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="880" y="141" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">control actions over the session connection</text>
+  <text x="880" y="159" font-size="11" fill="#475569" text-anchor="middle">CONFLICT_NOTIFY → open conflict records on both sides</text>
+  <text x="880" y="175" font-size="11" fill="#475569" text-anchor="middle">DELETE_FILE (hash-guarded) · ADOPT (heal fresh databases)</text>
+
+  <rect x="640" y="198" width="480" height="64" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="880" y="221" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">bulk data via the transfer manager queue</text>
+  <text x="880" y="239" font-size="11" fill="#475569" text-anchor="middle">PULL / PUSH transfers, chunked and resumable</text>
+  <text x="880" y="255" font-size="11" fill="#475569" text-anchor="middle">concurrency 1–8 (default 2) · global token-bucket bandwidth</text>
+
+  <rect x="640" y="278" width="230" height="64" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="755" y="301" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">per-chunk SHA-256</text>
+  <text x="755" y="319" font-size="11" fill="#475569" text-anchor="middle">verified on arrival</text>
+  <text x="755" y="335" font-size="11" fill="#475569" text-anchor="middle">retry ≤ 3 per chunk</text>
+
+  <rect x="890" y="278" width="230" height="64" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="1005" y="301" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">full-file verification</text>
+  <text x="1005" y="319" font-size="11" fill="#475569" text-anchor="middle">part file hashed before</text>
+  <text x="1005" y="335" font-size="11" fill="#475569" text-anchor="middle">renaming into place</text>
+
+  <rect x="640" y="358" width="480" height="64" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="880" y="381" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">finalize</text>
+  <text x="880" y="399" font-size="11" fill="#475569" text-anchor="middle">rename part file → destination (no partial visible files) · preserve remote mtime</text>
+  <text x="880" y="415" font-size="11" fill="#475569" text-anchor="middle">update index + lastSyncedHash · ADOPT to peer · FILE_END</text>
+
+  <rect x="640" y="438" width="480" height="44" rx="8" fill="#ccfbf1" stroke="#0d9488"/>
+  <text x="880" y="457" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">session record + events</text>
+  <text x="880" y="473" font-size="11" fill="#0f766e" text-anchor="middle">SYNC_COMPLETED / SYNC_FAILED · progress via WS frames</text>
+
+  <path d="M540,240 L610,240" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+
+  <!-- bottom: safety strip -->
+  <rect x="30" y="515" width="1120" height="310" rx="10" fill="#fffbeb" stroke="#b45309"/>
+  <text x="50" y="543" font-size="13" font-weight="700" fill="#78350f">Safety rules baked into the flow</text>
+
+  <rect x="50" y="558" width="520" height="120" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="70" y="582" font-size="12" font-weight="600" fill="#78350f">Hash-only comparisons</text>
+  <text x="70" y="602" font-size="11" fill="#92400e">Sync decisions never trust mtimes across devices; mtimes only</text>
+  <text x="70" y="618" font-size="11" fill="#92400e">shortcut local re-hashing when size and mtime are unchanged.</text>
+  <text x="70" y="638" font-size="11" fill="#92400e">A file that no longer matches its planned hash aborts the transfer —</text>
+  <text x="70" y="654" font-size="11" fill="#92400e">"never push surprises" is enforced on both PUSH and DELETE.</text>
+
+  <rect x="590" y="558" width="540" height="120" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="610" y="582" font-size="12" font-weight="600" fill="#78350f">Trash before destructive operations</text>
+  <text x="610" y="602" font-size="11" fill="#92400e">DELETE_LOCAL, remote deletion, and both conflict overwrites move the</text>
+  <text x="610" y="618" font-size="11" fill="#92400e">losing copy to ~/.meshsync/trash/&lt;folder&gt;/ first. Removing a shared</text>
+  <text x="610" y="634" font-size="11" fill="#92400e">folder keeps files on disk. Part files live outside shared folders,</text>
+  <text x="610" y="650" font-size="11" fill="#92400e">so interrupted transfers never leave partial data at destinations.</text>
+
+  <rect x="50" y="692" width="1080" height="112" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="70" y="716" font-size="12" font-weight="600" fill="#78350f">Self-healing</text>
+  <text x="70" y="736" font-size="11" fill="#92400e">UNCHANGED paths whose lastSyncedHash drifted (e.g. one side rebuilt its database) are healed with ADOPT frames instead of re-transferring.</text>
+  <text x="70" y="752" font-size="11" fill="#92400e">A local file the remote never saw but with a lastSyncedHash becomes LOCAL_MODIFIED (PUSH) rather than an unresolved duplicate.</text>
+  <text x="70" y="768" font-size="11" fill="#92400e">Transfers interrupted by an agent restart are moved to PAUSED at startup and resume from their persisted chunk bitmap.</text>
+  <text x="70" y="784" font-size="11" fill="#92400e">Sessions with any failed transfer end FAILED with per-session error and TRANSFER_FAILED events; successes record bytes and file counts.</text>
+</svg>

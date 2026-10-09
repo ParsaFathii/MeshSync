@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MeshSync original diagram — chunked transfer with hashes and resume (EN labels). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 720" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1180" height="720" fill="#ffffff"/>
+  <text x="30" y="38" font-size="18" font-weight="700" fill="#0f172a">MeshSync — chunked transfer, verification and resume</text>
+  <text x="30" y="58" font-size="12" fill="#64748b">Files move as SHA-256-verified chunks (default 1 MiB, range 64 KiB–16 MiB); a persisted chunk bitmap makes every transfer resumable.</text>
+
+  <!-- source file -->
+  <rect x="30" y="95" width="330" height="270" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="45" y="118" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">SENDER (source device)</text>
+
+  <rect x="60" y="132" width="270" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="195" y="153" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">videos/demo.mp4 — 256 MiB</text>
+  <text x="195" y="171" font-size="11" fill="#0f766e" text-anchor="middle">planned hash + size locked in the transfer record</text>
+
+  <text x="60" y="212" font-size="11" fill="#475569">split into chunks (256 × 1 MiB):</text>
+  <g>
+    <rect x="60"  y="222" width="60" height="34" rx="4" fill="#ccfbf1" stroke="#0d9488"/>
+    <rect x="126" y="222" width="60" height="34" rx="4" fill="#ccfbf1" stroke="#0d9488"/>
+    <rect x="192" y="222" width="60" height="34" rx="4" fill="#ccfbf1" stroke="#0d9488"/>
+    <rect x="258" y="222" width="24" height="34" rx="4" fill="#ccfbf1" stroke="#0d9488"/>
+    <text x="292" y="244" font-size="12" fill="#0f766e">…</text>
+    <text x="90"  y="243" font-size="10" fill="#134e4a" text-anchor="middle">#0</text>
+    <text x="156" y="243" font-size="10" fill="#134e4a" text-anchor="middle">#1</text>
+    <text x="222" y="243" font-size="10" fill="#134e4a" text-anchor="middle">#2</text>
+    <text x="270" y="243" font-size="10" fill="#134e4a" text-anchor="middle">#3</text>
+  </g>
+
+  <rect x="60" y="272" width="270" height="72" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="195" y="294" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">each chunk carries its SHA-256</text>
+  <text x="195" y="312" font-size="11" fill="#475569" text-anchor="middle">ChunkHeader: folder · path · offset · length</text>
+  <text x="195" y="328" font-size="11" fill="#475569" text-anchor="middle">chunk hash · file hash · file size · remote mtime</text>
+
+  <!-- wire -->
+  <rect x="395" y="95" width="360" height="270" rx="10" fill="#f8fafc" stroke="#64748b"/>
+  <text x="410" y="118" font-size="12" font-weight="700" fill="#475569" letter-spacing="1">WIRE (TLS 1.3, TCP)</text>
+
+  <rect x="415" y="132" width="320" height="58" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="575" y="155" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">PULL: GET_CHUNK → CHUNK_DATA</text>
+  <text x="575" y="173" font-size="11" fill="#0f766e" text-anchor="middle">frame = [4-byte length][type][2-byte header len][JSON header][raw bytes]</text>
+
+  <rect x="415" y="202" width="320" height="58" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="575" y="225" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">PUSH: PUT_CHUNK → CHUNK_ACK</text>
+  <text x="575" y="243" font-size="11" fill="#0f766e" text-anchor="middle">rejected chunks retried ≤ 3 times (300/600/900 ms backoff)</text>
+
+  <rect x="415" y="272" width="320" height="76" rx="8" fill="#fffbeb" stroke="#b45309"/>
+  <text x="575" y="296" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">token-bucket bandwidth (global)</text>
+  <text x="575" y="314" font-size="11" fill="#92400e" text-anchor="middle">bytes/s applied at chunk granularity, send and receive side</text>
+  <text x="575" y="330" font-size="11" fill="#92400e" text-anchor="middle">burst = 1 s of rate (capped at 8 MiB) · 0 = unlimited</text>
+
+  <path d="M360,160 L415,160" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+  <path d="M735,160 L795,160" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+
+  <!-- receiver -->
+  <rect x="800" y="95" width="350" height="270" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="815" y="118" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">RECEIVER (destination device)</text>
+
+  <rect x="825" y="132" width="300" height="72" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="975" y="155" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">verify each chunk on arrival</text>
+  <text x="975" y="173" font-size="11" fill="#475569" text-anchor="middle">SHA-256(data) must equal the announced chunk hash</text>
+  <text x="975" y="189" font-size="11" fill="#475569" text-anchor="middle">mismatch → transfer FAILS with an integrity error</text>
+
+  <rect x="825" y="216" width="300" height="64" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="975" y="239" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">write into a part file</text>
+  <text x="975" y="257" font-size="11" fill="#475569" text-anchor="middle">~/.meshsync/parts/&lt;sha256-16hex&gt;.part</text>
+  <text x="975" y="273" font-size="11" fill="#475569" text-anchor="middle">written at the chunk's offset — never at the final path</text>
+
+  <rect x="825" y="292" width="300" height="56" rx="8" fill="#ccfbf1" stroke="#0d9488"/>
+  <text x="975" y="315" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">chunk bitmap persisted in SQLite</text>
+  <text x="975" y="333" font-size="11" fill="#0f766e" text-anchor="middle">done/pending per chunk index, survives restarts</text>
+
+  <!-- finalize strip -->
+  <rect x="30" y="390" width="1120" height="150" rx="10" fill="#f8fafc" stroke="#64748b"/>
+  <text x="45" y="414" font-size="12" font-weight="700" fill="#475569" letter-spacing="1">FINALIZATION (status VERIFYING → COMPLETED)</text>
+
+  <rect x="60" y="428" width="330" height="94" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="225" y="450" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">hash the complete part file</text>
+  <text x="225" y="468" font-size="11" fill="#0f766e" text-anchor="middle">streaming SHA-256 (1 MiB buffers)</text>
+  <text x="225" y="484" font-size="11" fill="#0f766e" text-anchor="middle">must equal the planned file hash</text>
+  <text x="225" y="502" font-size="11" fill="#92400e" text-anchor="middle">failure → part removed, retry starts clean</text>
+
+  <rect x="420" y="428" width="330" height="94" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="585" y="450" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">atomic rename into the folder</text>
+  <text x="585" y="468" font-size="11" fill="#0f766e" text-anchor="middle">part file → shared folder destination</text>
+  <text x="585" y="484" font-size="11" fill="#0f766e" text-anchor="middle">remote mtime preserved</text>
+  <text x="585" y="502" font-size="11" fill="#0f766e" text-anchor="middle">index updated, lastSyncedHash = final hash</text>
+
+  <rect x="780" y="428" width="340" height="94" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="950" y="450" font-size="12" font-weight="600" fill="#134e4a" text-anchor="middle">ADOPT + FILE_END frames</text>
+  <text x="950" y="468" font-size="11" fill="#0f766e" text-anchor="middle">sender marks its copy as synced</text>
+  <text x="950" y="484" font-size="11" fill="#0f766e" text-anchor="middle">passive transfer record completed</text>
+  <text x="950" y="502" font-size="11" fill="#0f766e" text-anchor="middle">progress frames throttled (~8/s per transfer)</text>
+
+  <path d="M560,390 L560,428" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+
+  <!-- resume / control strip -->
+  <rect x="30" y="560" width="1120" height="130" rx="10" fill="#fffbeb" stroke="#b45309"/>
+  <text x="45" y="584" font-size="12" font-weight="700" fill="#78350f" letter-spacing="1">PAUSE / RESUME / CANCEL / RETRY (persisted state machine)</text>
+
+  <rect x="60" y="598" width="250" height="74" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="185" y="620" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">pause</text>
+  <text x="185" y="638" font-size="11" fill="#92400e" text-anchor="middle">stops issuing chunk requests,</text>
+  <text x="185" y="654" font-size="11" fill="#92400e" text-anchor="middle">state saved — survives restart</text>
+
+  <rect x="330" y="598" width="250" height="74" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="455" y="620" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">resume</text>
+  <text x="455" y="638" font-size="11" fill="#92400e" text-anchor="middle">continues from the first</text>
+  <text x="455" y="654" font-size="11" fill="#92400e" text-anchor="middle">pending chunk in the bitmap</text>
+
+  <rect x="600" y="598" width="250" height="74" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="725" y="620" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">cancel / retry</text>
+  <text x="725" y="638" font-size="11" fill="#92400e" text-anchor="middle">cancel → CANCELLED;</text>
+  <text x="725" y="654" font-size="11" fill="#92400e" text-anchor="middle">retry requeues a FAILED transfer</text>
+
+  <rect x="870" y="598" width="250" height="74" rx="8" fill="#ffffff" stroke="#b45309"/>
+  <text x="995" y="620" font-size="12" font-weight="600" fill="#78350f" text-anchor="middle">live metrics</text>
+  <text x="995" y="638" font-size="11" fill="#92400e" text-anchor="middle">speed over a 4 s window, ETA,</text>
+  <text x="995" y="654" font-size="11" fill="#92400e" text-anchor="middle">progress held at 99% until verified</text>
+</svg>

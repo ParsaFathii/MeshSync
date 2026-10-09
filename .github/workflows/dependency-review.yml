@@ -1,0 +1,36 @@
+# MeshSync — dependency review on pull requests.
+#
+# actions/dependency-review-action@v4 diffs the dependency manifests against
+# the base branch and fails on known-vulnerable versions / policy violations.
+#
+# Coverage in this repo:
+#   * agent/go.sum  — Go modules (supported by the dependency review API)
+#
+# Honest limitation: the web console uses bun, and dependency-review does not
+# support bun.lock (it needs package-lock.json / yarn.lock / pnpm-lock.yaml).
+# The web dependency surface is instead covered by CodeQL and Dependabot
+# alerts on the GitHub Advisory Database side. When the web app migrates to a
+# supported lockfile format, this action picks it up automatically.
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Review changed dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Block the PR when a changed dependency has a known vulnerability
+          # of high severity or worse.
+          fail-on-severity: high

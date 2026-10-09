@@ -1,0 +1,109 @@
+# MeshSync local docker-compose demo — two agents pairing over a private
+# bridge network and synchronizing a shared folder.
+#
+#   docker compose -f deploy/docker-compose.yml up -d --build
+#
+# Service layout (both containers run the SAME image; they differ only in
+# name and host port mappings):
+#
+#   mesh-alpha  — API  127.0.0.1:3040 -> 3040   peer 4040 -> 4040
+#   mesh-beta   — API  127.0.0.1:3041 -> 3040   peer 4041 -> 4040
+#
+# Inside the compose network each agent reaches the other by service name
+# (mesh-alpha / mesh-beta) on the container-internal peer port 4040. Pairing
+# (see deploy/README.md) uses that address; the published host ports are for
+# YOUR tooling (curl, web console) and for pairing with devices outside the
+# compose network.
+#
+# The web console is deliberately NOT a service here: it is a development
+# tool (Next.js dev server + bun + Prisma migrations against a local SQLite
+# file) that talks to the agent API. Point a locally-run console at
+# http://127.0.0.1:3040 and http://127.0.0.1:3041 instead of containerizing
+# the dev harness.
+#
+# init: true gives the agent a proper PID 1 that forwards SIGTERM (the agent
+# does not install signal handlers yet — see docs; docker stop falls back to
+# SIGKILL after the grace period without it).
+
+services:
+  mesh-alpha:
+    image: ghcr.io/parsafathii/meshsync:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: mesh-alpha
+    command:
+      - "--data-dir"
+      - "/data"
+      - "--api-bind"
+      - "0.0.0.0"
+      - "--api-port"
+      - "3040"
+      - "--peer-port"
+      - "4040"
+      - "--name"
+      - "mesh-alpha"
+    ports:
+      # Local-only API access for curl / the web console.
+      - "127.0.0.1:3040:3040"
+      # Peer port published on all interfaces so devices OUTSIDE docker can
+      # pair with this agent (requires explicit trust approval; TLS 1.3 with
+      # pinned keys). Remove if you want a fully isolated demo pair.
+      - "4040:4040"
+    volumes:
+      - mesh-alpha-data:/data
+    networks:
+      - meshsync
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3040/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  mesh-beta:
+    image: ghcr.io/parsafathii/meshsync:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: mesh-beta
+    command:
+      - "--data-dir"
+      - "/data"
+      - "--api-bind"
+      - "0.0.0.0"
+      - "--api-port"
+      - "3040"
+      - "--peer-port"
+      - "4040"
+      - "--name"
+      - "mesh-beta"
+    ports:
+      # Second agent on a different host API port; internal port stays 3040.
+      - "127.0.0.1:3041:3040"
+      - "4041:4040"
+    volumes:
+      - mesh-beta-data:/data
+    networks:
+      - meshsync
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3040/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+networks:
+  meshsync:
+    name: meshsync
+    driver: bridge
+
+volumes:
+  mesh-alpha-data:
+    name: meshsync-alpha-data
+  mesh-beta-data:
+    name: meshsync-beta-data

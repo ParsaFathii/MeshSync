@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MeshSync original diagram — release pipeline from tag to published release (EN labels). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1180" height="560" fill="#ffffff"/>
+  <text x="30" y="38" font-size="18" font-weight="700" fill="#0f172a">MeshSync — release pipeline</text>
+  <text x="30" y="58" font-size="12" fill="#64748b">Every tagged version (v0.1.0 … v1.0.0) goes through the same gate: tag → validate → package → checksum → SBOM → release.</text>
+
+  <!-- stage strip -->
+  <g>
+    <rect x="30"  y="90" width="160" height="70" rx="10" fill="#0f172a"/>
+    <text x="110" y="119" font-size="13" font-weight="700" fill="#f1f5f9" text-anchor="middle">1 · tag</text>
+    <text x="110" y="140" font-size="11" fill="#cbd5e1" text-anchor="middle">git tag vX.Y.Z</text>
+
+    <rect x="230" y="90" width="160" height="70" rx="10" fill="#ccfbf1" stroke="#0d9488"/>
+    <text x="310" y="119" font-size="13" font-weight="700" fill="#134e4a" text-anchor="middle">2 · validate</text>
+    <text x="310" y="140" font-size="11" fill="#0f766e" text-anchor="middle">build + lint + tests</text>
+
+    <rect x="430" y="90" width="160" height="70" rx="10" fill="#ccfbf1" stroke="#0d9488"/>
+    <text x="510" y="119" font-size="13" font-weight="700" fill="#134e4a" text-anchor="middle">3 · package</text>
+    <text x="510" y="140" font-size="11" fill="#0f766e" text-anchor="middle">binaries + archives</text>
+
+    <rect x="630" y="90" width="170" height="70" rx="10" fill="#ccfbf1" stroke="#0d9488"/>
+    <text x="715" y="119" font-size="13" font-weight="700" fill="#134e4a" text-anchor="middle">4 · checksum</text>
+    <text x="715" y="140" font-size="11" fill="#0f766e" text-anchor="middle">SHA-256 sums file</text>
+
+    <rect x="840" y="90" width="150" height="70" rx="10" fill="#ccfbf1" stroke="#0d9488"/>
+    <text x="915" y="119" font-size="13" font-weight="700" fill="#134e4a" text-anchor="middle">5 · SBOM</text>
+    <text x="915" y="140" font-size="11" fill="#0f766e" text-anchor="middle">component list</text>
+
+    <rect x="1030" y="90" width="120" height="70" rx="10" fill="#0f172a"/>
+    <text x="1090" y="119" font-size="13" font-weight="700" fill="#f1f5f9" text-anchor="middle">6 · release</text>
+    <text x="1090" y="140" font-size="11" fill="#cbd5e1" text-anchor="middle">publish</text>
+
+    <line x1="190"  y1="125" x2="230" y2="125" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+    <line x1="390"  y1="125" x2="430" y2="125" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+    <line x1="590"  y1="125" x2="630" y2="125" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+    <line x1="800"  y1="125" x2="840" y2="125" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+    <line x1="990"  y1="125" x2="1030" y2="125" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+  </g>
+
+  <!-- validate detail -->
+  <rect x="30" y="200" width="540" height="330" rx="10" fill="#f8fafc" stroke="#64748b"/>
+  <text x="45" y="224" font-size="12" font-weight="700" fill="#475569" letter-spacing="1">VALIDATION MATRIX (per component)</text>
+
+  <rect x="60" y="240" width="480" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="70" y="261" font-size="12" font-weight="600" fill="#134e4a">Go agent</text>
+  <text x="70" y="279" font-size="11" fill="#0f766e">go vet · go build ./… · go test ./… (incl. two-agent e2e tests)</text>
+
+  <rect x="60" y="304" width="480" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="70" y="325" font-size="12" font-weight="600" fill="#134e4a">C++ native worker</text>
+  <text x="70" y="343" font-size="11" fill="#0f766e">make (C++20, g++) · make test (unit tests for the hash engine)</text>
+
+  <rect x="60" y="368" width="480" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="70" y="389" font-size="12" font-weight="600" fill="#134e4a">Web console</text>
+  <text x="70" y="407" font-size="11" fill="#0f766e">bun lint · production build</text>
+
+  <rect x="60" y="432" width="480" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="70" y="453" font-size="12" font-weight="600" fill="#134e4a">Flutter client</text>
+  <text x="70" y="471" font-size="11" fill="#0f766e">flutter analyze · flutter test</text>
+
+  <text x="60" y="510" font-size="11" fill="#92400e">A red gate stops the pipeline: no release ships with failing checks.</text>
+
+  <!-- package detail -->
+  <rect x="610" y="200" width="540" height="330" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="625" y="224" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">ARTIFACTS PER RELEASE</text>
+
+  <rect x="640" y="240" width="480" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="650" y="261" font-size="12" font-weight="600" fill="#134e4a">meshsync-agent binaries</text>
+  <text x="650" y="279" font-size="11" fill="#0f766e">cross-compiled agent per supported platform</text>
+
+  <rect x="640" y="304" width="480" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="650" y="325" font-size="12" font-weight="600" fill="#134e4a">meshsync-native worker</text>
+  <text x="650" y="343" font-size="11" fill="#0f766e">C++ hashing engine, built with make</text>
+
+  <rect x="640" y="368" width="480" height="52" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="650" y="389" font-size="12" font-weight="600" fill="#134e4a">checksums + SBOM</text>
+  <text x="650" y="407" font-size="11" fill="#0f766e">SHA256SUMS and a CycloneDX SBOM for the tag</text>
+
+  <rect x="640" y="432" width="480" height="52" rx="8" fill="#fffbeb" stroke="#b45309"/>
+  <text x="650" y="453" font-size="12" font-weight="600" fill="#78350f">Docker image</text>
+  <text x="650" y="471" font-size="11" fill="#92400e">pure-Go agent only (deploy/Dockerfile); worker optional</text>
+
+  <text x="640" y="510" font-size="11" fill="#0f766e">CHANGELOG.md is updated with the milestone entry before tagging.</text>
+
+  <text x="30" y="548" font-size="11" fill="#94a3b8">MeshSync · docs/assets/release-pipeline.svg</text>
+</svg>

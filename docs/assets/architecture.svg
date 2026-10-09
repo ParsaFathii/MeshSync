@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MeshSync original diagram — layered system architecture (EN labels). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1180" height="760" fill="#ffffff"/>
+  <text x="30" y="40" font-size="18" font-weight="700" fill="#0f172a">MeshSync — layered architecture</text>
+  <text x="30" y="60" font-size="12" fill="#64748b">Clients talk only to their local agent; agents talk to each other over TLS 1.3.</text>
+
+  <!-- ============ Layer 1: clients ============ -->
+  <rect x="30" y="85" width="1120" height="110" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="45" y="108" font-size="12" font-weight="700" fill="#475569" letter-spacing="1">CLIENTS</text>
+
+  <rect x="70" y="120" width="330" height="60" rx="8" fill="#ccfbf1" stroke="#0d9488"/>
+  <text x="235" y="145" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">Flutter client</text>
+  <text x="235" y="163" font-size="11" fill="#0f766e" text-anchor="middle">Android + Linux · typed API client · fa/en</text>
+
+  <rect x="780" y="120" width="330" height="60" rx="8" fill="#ccfbf1" stroke="#0d9488"/>
+  <text x="945" y="145" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">Web console</text>
+  <text x="945" y="163" font-size="11" fill="#0f766e" text-anchor="middle">Next.js + TS · 9 workspaces · WS live events · fa/en + RTL + dark</text>
+
+  <rect x="440" y="120" width="300" height="60" rx="8" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="590" y="145" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">curl / scripts</text>
+  <text x="590" y="163" font-size="11" fill="#475569" text-anchor="middle">plain HTTP against the versioned REST API</text>
+
+  <!-- arrows clients -> agent -->
+  <line x1="590" y1="180" x2="590" y2="215" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+  <text x="620" y="203" font-size="11" fill="#0f766e">HTTP + WebSocket · /api/v1/…</text>
+
+  <!-- ============ Layer 2: local agent ============ -->
+  <rect x="30" y="215" width="1120" height="235" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="45" y="238" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">LOCAL AGENT (meshsync-agent, Go)</text>
+  <text x="1130" y="238" font-size="11" fill="#0f766e" text-anchor="end">API binds 127.0.0.1:3040 by default</text>
+
+  <rect x="60" y="252" width="250" height="80" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="185" y="277" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">api/</text>
+  <text x="185" y="295" font-size="11" fill="#0f766e" text-anchor="middle">REST v1 + WS events</text>
+  <text x="185" y="311" font-size="11" fill="#0f766e" text-anchor="middle">token auth · rate limit</text>
+
+  <rect x="340" y="252" width="250" height="80" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="465" y="277" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">app/</text>
+  <text x="465" y="295" font-size="11" fill="#0f766e" text-anchor="middle">wiring, pairing, discovery,</text>
+  <text x="465" y="311" font-size="11" fill="#0f766e" text-anchor="middle">peer monitor, server handlers</text>
+
+  <rect x="620" y="252" width="250" height="80" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="745" y="277" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">sync/ (planner + engine)</text>
+  <text x="745" y="295" font-size="11" fill="#0f766e" text-anchor="middle">plan-first sessions,</text>
+  <text x="745" y="311" font-size="11" fill="#0f766e" text-anchor="middle">conflicts, trash, resolution</text>
+
+  <rect x="900" y="252" width="220" height="80" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="1010" y="277" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">transfer/</text>
+  <text x="1010" y="295" font-size="11" fill="#0f766e" text-anchor="middle">chunk queue · resume</text>
+  <text x="1010" y="311" font-size="11" fill="#0f766e" text-anchor="middle">pause/cancel · token bucket</text>
+
+  <rect x="60" y="352" width="250" height="78" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="185" y="376" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">indexer/</text>
+  <text x="185" y="394" font-size="11" fill="#475569" text-anchor="middle">walk + hash + fsnotify watch</text>
+  <text x="185" y="410" font-size="11" fill="#475569" text-anchor="middle">SafeJoin path validation</text>
+
+  <rect x="340" y="352" width="250" height="78" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="465" y="376" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">netproto/</text>
+  <text x="465" y="394" font-size="11" fill="#475569" text-anchor="middle">framed peer wire protocol</text>
+  <text x="465" y="410" font-size="11" fill="#475569" text-anchor="middle">TLS 1.3 · Ed25519 pinning</text>
+
+  <rect x="620" y="352" width="250" height="78" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="745" y="376" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">identity/ · events/ · config/</text>
+  <text x="745" y="394" font-size="11" fill="#475569" text-anchor="middle">Ed25519 identity · event bus</text>
+  <text x="745" y="410" font-size="11" fill="#475569" text-anchor="middle">config.json + env + flags</text>
+
+  <rect x="900" y="352" width="220" height="78" rx="8" fill="#fef3c7" stroke="#b45309"/>
+  <text x="1010" y="376" font-size="13" font-weight="600" fill="#78350f" text-anchor="middle">native/ worker</text>
+  <text x="1010" y="394" font-size="11" fill="#92400e" text-anchor="middle">C++20 SHA-256 engine</text>
+  <text x="1010" y="410" font-size="11" fill="#92400e" text-anchor="middle">JSON-lines stdin/stdout</text>
+
+  <line x1="1010" y1="332" x2="1010" y2="352" stroke="#b45309" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="1022" y="346" font-size="10" fill="#92400e">≥ 1 MiB files</text>
+  <line x1="930" y1="292" x2="875" y2="292" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="930" y1="391" x2="875" y2="391" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ============ Layer 3: state ============ -->
+  <rect x="30" y="465" width="700" height="130" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="45" y="488" font-size="12" font-weight="700" fill="#475569" letter-spacing="1">LOCAL STATE (~/.meshsync)</text>
+
+  <rect x="60" y="500" width="200" height="75" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="160" y="525" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">SQLite</text>
+  <text x="160" y="543" font-size="11" fill="#475569" text-anchor="middle">meshsync.db</text>
+  <text x="160" y="559" font-size="11" fill="#475569" text-anchor="middle">modernc.org/sqlite (pure Go)</text>
+
+  <rect x="285" y="500" width="200" height="75" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="385" y="525" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">Shared folders</text>
+  <text x="385" y="543" font-size="11" fill="#475569" text-anchor="middle">user directories,</text>
+  <text x="385" y="559" font-size="11" fill="#475569" text-anchor="middle">watched live</text>
+
+  <rect x="510" y="500" width="200" height="75" rx="8" fill="#ffffff" stroke="#64748b"/>
+  <text x="610" y="525" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">trash/ + parts/</text>
+  <text x="610" y="543" font-size="11" fill="#475569" text-anchor="middle">recoverable deletions,</text>
+  <text x="610" y="559" font-size="11" fill="#475569" text-anchor="middle">resumable part files</text>
+
+  <line x1="380" y1="450" x2="380" y2="465" stroke="#64748b" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ============ Layer 4: peer network ============ -->
+  <rect x="750" y="465" width="400" height="285" rx="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="765" y="488" font-size="12" font-weight="700" fill="#0f766e" letter-spacing="1">PEER NETWORK (LAN)</text>
+
+  <rect x="785" y="505" width="335" height="70" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="952" y="530" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">Discovery — UDP multicast</text>
+  <text x="952" y="548" font-size="11" fill="#0f766e" text-anchor="middle">239.255.42.42:4100 · beacon every 5 s</text>
+  <text x="952" y="564" font-size="11" fill="#0f766e" text-anchor="middle">peers appear as DISCOVERED, never auto-trusted</text>
+
+  <rect x="785" y="595" width="335" height="70" rx="8" fill="#ffffff" stroke="#0d9488"/>
+  <text x="952" y="620" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">Peer connections — TCP + TLS 1.3</text>
+  <text x="952" y="638" font-size="11" fill="#0f766e" text-anchor="middle">peer port 4040 (device A) / 4041 (device B)</text>
+  <text x="952" y="654" font-size="11" fill="#0f766e" text-anchor="middle">self-signed certs pinned to Ed25519 identity</text>
+
+  <rect x="785" y="685" width="335" height="50" rx="8" fill="#ccfbf1" stroke="#0d9488"/>
+  <text x="952" y="705" font-size="13" font-weight="600" fill="#134e4a" text-anchor="middle">Remote agent (mesh-beta)</text>
+  <text x="952" y="722" font-size="11" fill="#0f766e" text-anchor="middle">same layout, its own identity and database</text>
+
+  <line x1="952" y1="450" x2="952" y2="465" stroke="#0d9488" stroke-width="2" marker-end="url(#arrTeal)"/>
+  <text x="965" y="462" font-size="10" fill="#0f766e">netproto frames</text>
+  <line x1="952" y1="575" x2="952" y2="595" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="952" y1="665" x2="952" y2="685" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <text x="30" y="730" font-size="11" fill="#94a3b8">MeshSync · docs/assets/architecture.svg</text>
+</svg>

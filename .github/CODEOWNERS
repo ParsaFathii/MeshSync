@@ -1,0 +1,4 @@
+# MeshSync CODEOWNERS
+# Every path in the repository requires review from the maintainer.
+# Keep this file in sync with the team as contributors join.
+* @ParsaFathii
