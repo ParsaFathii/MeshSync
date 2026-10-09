@@ -1,0 +1,87 @@
+# Dependencies
+node_modules/
+.pnp.*
+.yarn/*
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Production
+/build/
+
+# Runtime logs
+dev.log
+server.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# Environment (secrets must never be committed)
+.env
+.env.local
+.env.*.local
+
+# MeshSync runtime state (local-first data lives here, not in git)
+/data/
+/db/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.meshsync-state/
+
+# Go
+agent/bin/
+agent/meshsync-agent
+agent/dist/
+*.test
+*.out
+coverage.txt
+
+# C++ native engine
+native/cpp/build/
+native/cpp/bin/
+native/cpp/obj/
+*.o
+*.a
+*.so
+
+# Flutter
+flutter/.dart_tool/
+flutter/.pub-cache/
+flutter/.pub/
+flutter/build/
+flutter/.flutter-plugins
+flutter/.flutter-plugins-dependencies
+flutter/.metadata
+
+# Sandbox development harness artifacts (not product code)
+tool-results/
+upload/
+download/
+skills/
+examples/
+tests/
+.zscripts/
+agent-*.log
+.runtime/
+agent-ctx/
+worklog.md
+dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Misc
+*.pem
+*.key
+.vercel
