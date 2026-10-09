@@ -30,6 +30,24 @@ Not a fit: devices that can never reach each other (MeshSync is LAN-only —
 there is no relay and no NAT traversal), and multi-user sharing with
 per-file ACLs (the trust model is per-device and single-user oriented).
 
+## At a glance
+
+A 44 MiB file appearing on one device, planned, chunk-transferred at a
+capped 3 MB/s, and confirmed synced — all through the web console:
+
+![MeshSync console demo: plan, transfer progress, synced](docs/assets/screens/demo-sync.gif)
+
+A few stills (all real sessions, both languages, light/dark, mobile):
+
+| | |
+|---|---|
+| ![Device workspace](docs/assets/screens/01-device-en-light.png) | ![Files with detail](docs/assets/screens/04-files-en-light.png) |
+| ![Sync plan](docs/assets/screens/05-sync-plan-en.png) | ![Active transfer](docs/assets/screens/06-transfer-active-en.png) |
+| ![Conflict resolution](docs/assets/screens/08-conflict-open-en.png) | ![Persian RTL activity](docs/assets/screens/09-activity-fa.png) |
+
+Full gallery with per-shot descriptions:
+[docs/assets/screens/](docs/assets/screens/README.md).
+
 ## How it works
 
 ```

@@ -1,9 +1,9 @@
 // MeshSync native engine — recursive directory scanner.
 //
-// Walks a directory tree and reports every entry's path (relative to the
-// root), size and mtime in milliseconds since the epoch. Symlinks are
-// reported as such (never followed); unreadable subtrees surface as an
-// error.
+// Walks a directory tree and reports every regular file and directory with
+// its path (relative to the root), size and mtime in milliseconds since the
+// epoch. Symlinks are neither followed nor reported — a sync set never
+// includes an indirect entry; unreadable subtrees surface as an error.
 #pragma once
 
 #include <cstdint>

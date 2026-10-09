@@ -4,6 +4,11 @@ A five-minute, two-device demo on one machine. Two agents, real pairing,
 real chunked transfer over TLS. Prerequisites: Go 1.25+ built agent; a
 second terminal; curl.
 
+What the whole flow looks like in the web console (plan → live transfer
+progress → synced):
+
+![MeshSync console demo](assets/screens/demo-sync.gif)
+
 ```sh
 # 0. build the agent (once)
 cd agent

@@ -4,6 +4,23 @@ All notable changes to MeshSync are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 semantic versioning. Release dates are filled in when each tag is cut.
 
+## [1.0.1] — docs refresh
+
+### Added
+- `docs/assets/screens/demo-sync.gif` — 46-second animated end-to-end demo
+  (plan → live chunked transfer with progress and throughput graph → synced),
+  captured from a real two-agent session.
+- `13-settings-en.png` — Settings workspace screenshot (live editable agent
+  configuration).
+
+### Changed
+- All console screenshots re-captured against the final v1.0.0 agents
+  (two trusted peers, 5-file shared folder, real 64 B–48 MiB transfer
+  history, an open conflict, and an error/recovery shot with the supervisor
+  respawn), replacing the earlier v0.1.0-era captures.
+- Root `README.md` gained an "At a glance" section embedding the demo GIF
+  and a stills gallery; `docs/QUICKSTART.md` embeds the GIF up front.
+
 ## [1.0.0] — stable
 
 ### Added
