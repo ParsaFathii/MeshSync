@@ -31,7 +31,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -trimpath -ldflags="-s -w" -o /out/meshsync-agent ./cmd/meshsync-agent
 
 # --- Stage 2: runtime ----------------------------------------------------
-FROM alpine:3.22
+FROM alpine:3.24
 
 # ca-certificates: outbound TLS to peers/registries when needed.
 # tzdata: correct timestamps for scheduled scans / logs.
