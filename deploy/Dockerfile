@@ -16,7 +16,7 @@
 # cross-compiles cleanly for linux/amd64 and linux/arm64 via buildx.
 
 # --- Stage 1: build the agent -------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
