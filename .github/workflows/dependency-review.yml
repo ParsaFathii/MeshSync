@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Dependency review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           # Block the PR when a changed dependency has a known vulnerability
           # of high severity or worse.
