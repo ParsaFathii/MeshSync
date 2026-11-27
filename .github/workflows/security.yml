@@ -40,7 +40,7 @@ jobs:
 
       - name: Set up Go (version from agent/go.mod)
         if: matrix.language == 'go'
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: agent/go.mod
           cache: true
