@@ -41,7 +41,7 @@ jobs:
         working-directory: agent
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go (version from agent/go.mod)
         uses: actions/setup-go@v5
@@ -74,7 +74,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check for the native engine
         id: native
@@ -110,7 +110,7 @@ jobs:
       DATABASE_URL: file:./db/custom.db
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up bun
         uses: oven-sh/setup-bun@v2
@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check for the Flutter client
         id: flutter
